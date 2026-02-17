@@ -38,7 +38,7 @@ const userSchema = new Schema<IUser>(
     {
         timestamps: true,
         toJSON: {
-            transform(_, ret) {
+            transform(_doc, ret: any) {
                 delete ret.password;
                 delete ret.__v;
                 return ret;
@@ -47,7 +47,7 @@ const userSchema = new Schema<IUser>(
     }
 );
 
-userSchema.pre<IUser>('save',async function (next){
+userSchema.pre<IUser>('save',async function (next: any){
     if(!this.isModified('password')) return next();
 
     const salt = await bcrypt.genSalt(10);
@@ -62,3 +62,4 @@ userSchema.methods.comparePassword = async function (
 };
 
 export const User = model<IUser>('User',userSchema);
+
