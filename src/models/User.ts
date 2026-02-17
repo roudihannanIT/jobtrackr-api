@@ -14,8 +14,6 @@ export interface IUser extends Document {
     comparePassword(candidatePassword:string):Promise<boolean>;
     createdAt: Date;
     updatedAt: Date;
-    isDeleted: boolean;
-    deletedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -36,13 +34,6 @@ const userSchema = new Schema<IUser>(
             type: String,
             enum: Object.values(UserRole),
             default: UserRole.USER,
-        },
-        isDeleted: {
-            type: Boolean,
-            default: false,
-        },
-        deletedAt: {
-            type: Date,
         }
     },
     {
@@ -57,9 +48,10 @@ const userSchema = new Schema<IUser>(
     }
 );
 
-userSchema.pre<Query<any,IUser>>(/^find/, function (next) {
-    this.where({isDeleted:false});
-});
+
+userSchema.statics.findWithDeleted = function (filter = {}) {
+  return this.findOne(filter).setOptions({ _withDeleted: true });
+};
 
 // hash password before save
 userSchema.pre<IUser>('save',async function (){

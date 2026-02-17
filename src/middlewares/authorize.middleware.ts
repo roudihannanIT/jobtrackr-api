@@ -2,15 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import { UserRole } from "../models/User";
 
 export const authorizeRoles = (...roles: UserRole[]) => {
-    return (req:Request, res:Response, next: NextFunction) => {
-        if(!req.user) {
-            throw new Error('Not authorized');
-        }
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
 
-        if(!roles.includes(req.user.role)) {
-            throw new Error('Forbidden');
-        }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-        next();
-    };
+    next();
+  };
 };

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { User, UserRole } from "../models/User";
+import {AuditLog, AuditAction } from "../models/AuditLog";
 
 export const adminDashboard = (req:Request, res:Response) => {
     res.status(200).json({
@@ -60,6 +61,12 @@ export const changeUserRole = async (req: Request, res: Response) => {
     user.role = role;
     await user.save();
 
+    await AuditLog.create({
+      action: AuditAction.CHANGE_ROLE,
+      performedBy: req.user!.id,
+      targetUser: user.id,
+    });
+
     res.status(200).json({
       message: "User role updated successfully",
       user,
@@ -78,7 +85,6 @@ export const deleteUser = async (req:Request,res:Response) => {
         message: "Admin cannot delete their own account",
       });
     }
-
     const user = await User.findById(userId);
 
     if(!user) {
@@ -87,9 +93,13 @@ export const deleteUser = async (req:Request,res:Response) => {
       });
     }
 
-    user.isDeleted = true;
-    user.createdAt = new Date();
-    await user.save();
+    await user.deleteOne();
+
+    await AuditLog.create({
+      action: AuditAction.DELETE_USER,
+      performedBy: req.user!.id,
+      targetUser: user.id,
+    });
 
     res.status(200).json({
       message: "User deleted successfully",
@@ -98,5 +108,21 @@ export const deleteUser = async (req:Request,res:Response) => {
     res.status(500).json({
       message: "Failed to delete user",
     });
+  }
+};
+
+export const getAuditLogs = async (req: Request, res: Response) => {
+  try {
+    const logs = await AuditLog.find()
+      .populate("performedBy", "email role")
+      .populate("targetUser", "email role")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      count: logs.length,
+      logs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch audit logs" });
   }
 };
