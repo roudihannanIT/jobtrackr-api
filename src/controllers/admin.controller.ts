@@ -87,7 +87,9 @@ export const deleteUser = async (req:Request,res:Response) => {
       });
     }
 
-    await user.deleteOne();
+    user.isDeleted = true;
+    user.createdAt = new Date();
+    await user.save();
 
     res.status(200).json({
       message: "User deleted successfully",
