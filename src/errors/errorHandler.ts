@@ -5,7 +5,7 @@ import { request } from "node:http";
 export const globalErrorHandler = (
     err:Error,
     _req:Request,
-    res:Request,
+    res:Response,
     _next:NextFunction
 ) => {
     if(err instanceof AppError) {
