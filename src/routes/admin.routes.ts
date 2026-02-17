@@ -4,7 +4,6 @@ import { protect } from "../middlewares/auth.middleware";
 import { authorizeRoles } from "../middlewares/authorize.middleware";
 import { UserRole } from "../models/User";
 import { changeUserRole, deleteUser } from "../controllers/admin.controller";
-import { getAuditLogs } from "../controllers/admin.controller";
 
 const router = Router();
 
@@ -34,13 +33,6 @@ router.delete(
     protect,
     authorizeRoles(UserRole.ADMIN),
     deleteUser
-);
-
-router.get(
-    "/audit-logs",
-    protect,
-    authorizeRoles(UserRole.ADMIN),
-    getAuditLogs
 );
 
 export default router;
