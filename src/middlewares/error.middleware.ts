@@ -1,30 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
+export interface AppError extends Error{
+  statusCode?:number;
+}
+
 export const errorMiddleware = (
-  err: Error,
+  err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   console.error(err);
 
-  let statusCode = 500;
-  let message = 'Server Error';
-
-  if (err.message.includes('required')) {
-    statusCode = 400;
-    message = err.message;
-  }
-
-  if (err.message.includes('exists')) {
-    statusCode = 409;
-    message = err.message;
-  }
-
-  if (err.message.includes('Invalid') || err.message.includes('authorized')) {
-    statusCode = 401;
-    message = err.message;
-  }
+  const statusCode = err.statusCode ?? 500;
+  const message = err.message || "Server Error";
 
   res.status(statusCode).json({
     success: false,

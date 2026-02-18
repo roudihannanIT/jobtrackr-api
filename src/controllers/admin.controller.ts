@@ -46,7 +46,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       }
     );
   } catch (error) {
-    return errorResponse(res, "Failed to fetch users");
+    throw {statusCode: 500, message: "Failed to fetch users"};
   }
 };
 
@@ -56,13 +56,13 @@ export const changeUserRole = async (req: Request, res: Response) => {
     const { role } = req.body;
 
     if (!Object.values(UserRole).includes(role)) {
-      return errorResponse(res, "Invalid role", 400);
+      throw {statusCode: 400, message: "Invalid role"};
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return errorResponse(res, "User not found", 404);
+      throw {statusCode: 404, message: "User not found"};
     }
 
     user.role = role;
@@ -82,10 +82,7 @@ export const changeUserRole = async (req: Request, res: Response) => {
       }
     );
   } catch (error) {
-    return errorResponse(
-      res,
-      "Failed to update user role"
-    );
+    throw {statusCode: 500, message: "Failed to update user role"};
   }
 };
 
@@ -94,20 +91,12 @@ export const deleteUser = async (req:Request,res:Response) => {
     const {userId} = req.params;
 
     if(req.user?.id === userId){
-      return errorResponse(
-        res,
-        "Admin cannot delete their own account",
-        400
-      );
+      throw {statusCode: 400, message: "Admin cannot delete their own account"};
     }
     const user = await User.findById(userId);
 
     if(!user) {
-      return errorResponse(
-        res,
-        "User not found",
-        404
-      )
+      throw {statusCode: 404, message: "User not found"};
     }
 
     await user.deleteOne();
@@ -120,7 +109,7 @@ export const deleteUser = async (req:Request,res:Response) => {
 
     return successResponse(res, "User deleted successfully");
   }catch(error) {
-    return errorResponse(res, "Failed to delete user");
+    throw {statusCode: 500, message: "Failed to delete user"};
   }
 };
 
@@ -140,6 +129,6 @@ export const getAuditLogs = async (req: Request, res: Response) => {
       }
     );
   } catch (error) {
-    return errorResponse(res, "Failed to fetch audit logs");
+    throw {statusCode: 500, message: "Failed to fetch audit logs"};
   }
 };
