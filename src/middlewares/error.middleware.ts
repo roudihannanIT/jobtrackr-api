@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-export interface AppError extends Error{
-  statusCode?:number;
-}
+// export interface AppError extends Error{
+//   statusCode?:number;
+// }
 
 export const errorMiddleware = (
   err: any,
@@ -12,11 +12,11 @@ export const errorMiddleware = (
 ) => {
   console.error(err);
 
-  const statusCode = err.statusCode ?? 500;
-  const message = err.message || "Server Error";
+  // const statusCode = err.statusCode ?? 500;
+  // const message = err.message || "Server Error";
 
-  res.status(statusCode).json({
+  res.status(500).json({
     success: false,
-    message,
+    message: err.message || "Server Error",
   });
 };

@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { User, UserRole } from "../models/User";
-import {AuditLog, AuditAction } from "../models/AuditLog";
 import { successResponse, errorResponse } from "../utils/response";
 
 export const adminDashboard = (req:Request, res:Response) => {
@@ -46,7 +45,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       }
     );
   } catch (error) {
-    throw {statusCode: 500, message: "Failed to fetch users"};
+    return errorResponse(res, "Failed to fetch users");
   }
 };
 
@@ -56,23 +55,17 @@ export const changeUserRole = async (req: Request, res: Response) => {
     const { role } = req.body;
 
     if (!Object.values(UserRole).includes(role)) {
-      throw {statusCode: 400, message: "Invalid role"};
+      return errorResponse(res, "Invalid role", 400);
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      throw {statusCode: 404, message: "User not found"};
+      return errorResponse(res, "User not found", 404);
     }
 
     user.role = role;
     await user.save();
-
-    await AuditLog.create({
-      action: AuditAction.CHANGE_ROLE,
-      performedBy: req.user!.id,
-      targetUser: user.id,
-    });
 
     return successResponse(
       res,
@@ -82,53 +75,32 @@ export const changeUserRole = async (req: Request, res: Response) => {
       }
     );
   } catch (error) {
-    throw {statusCode: 500, message: "Failed to update user role"};
+    return errorResponse(
+      res,
+      "Failed to update user role"
+    );
   }
 };
 
-export const deleteUser = async (req:Request,res:Response) => {
-  try{
-    const {userId} = req.params;
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
 
-    if(req.user?.id === userId){
-      throw {statusCode: 400, message: "Admin cannot delete their own account"};
+    if (req.user?.id === userId) {
+      return errorResponse(res, "Admin cannot delete their own account", 400);
     }
+
     const user = await User.findById(userId);
 
-    if(!user) {
-      throw {statusCode: 404, message: "User not found"};
+    if (!user) {
+      return errorResponse(res, "User not found", 404);
     }
 
     await user.deleteOne();
 
-    await AuditLog.create({
-      action: AuditAction.DELETE_USER,
-      performedBy: req.user!.id,
-      targetUser: user.id,
-    });
-
     return successResponse(res, "User deleted successfully");
-  }catch(error) {
-    throw {statusCode: 500, message: "Failed to delete user"};
-  }
-};
-
-export const getAuditLogs = async (req: Request, res: Response) => {
-  try {
-    const logs = await AuditLog.find()
-      .populate("performedBy", "email role")
-      .populate("targetUser", "email role")
-      .sort({ createdAt: -1 });
-
-    return successResponse(
-      res,
-      "Audit logs fetched successfully",
-      {
-        count: logs.length,
-        logs
-      }
-    );
   } catch (error) {
-    throw {statusCode: 500, message: "Failed to fetch audit logs"};
+    console.error(error);
+    return errorResponse(res, "Failed to delete user");
   }
 };
