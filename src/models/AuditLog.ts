@@ -1,14 +1,14 @@
 import { Schema, model, Document, Types } from "mongoose";
 
 export enum AuditAction {
-  DELETE_USER = "DELETE_USER",
-  CHANGE_ROLE = "CHANGE_ROLE",
+  DELETE_USER = "delete_user",
+  CHANGE_ROLE = "change_role",
 }
 
 export interface IAuditLog extends Document {
   action: AuditAction;
   performedBy: Types.ObjectId;
-  targetUser: Types.ObjectId; 
+  targetUser?: Types.ObjectId;
   createdAt: Date;
 }
 
@@ -27,11 +27,10 @@ const auditLogSchema = new Schema<IAuditLog>(
     targetUser: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: true, updatedAt: false },
   }
 );
 
